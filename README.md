@@ -1,3 +1,5 @@
+> Second project for fun: [Chinook-Db](https://github.com/victorlifan/Sakila-DVD-Rental-database-analysis/tree/master/Chinook-Db)
+
 ### Project Title
 Investigate a Relational Database
 
