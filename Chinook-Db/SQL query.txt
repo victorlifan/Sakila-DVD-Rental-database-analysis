@@ -1,0 +1,77 @@
+/* Q1/
+--Who is writing the rock music?
+select a.artistid, a.name, COUNT(*) songs
+FROM Artist a, Album al, Track t
+join Genre g
+on t.genreid = g.GenreId
+WHERE a.ArtistId= al.artistid and al.albumid= t.albumid and g.name = 'Rock'
+GROUP BY 1,2
+ORDER BY 3 DESC
+LIMIT 10;
+
+/*Q2/
+--First, find which artist has earned the most according to the InvoiceLines?
+--Now use this artist to find which customer spent the most on this artist.
+
+-- pickout all the Artist if they have the same amount of sales
+WITH T1 AS (SELECT a.name, il.trackid,  SUM(il.unitprice*il.quantity)OVER(PARTITION BY A.ArtistId) index1
+            from Artist a
+            join Album al
+            on a.artistid= al.ArtistId
+            join Track t
+            on al.albumid = t.albumid
+            join InvoiceLine il
+            on t.trackid= il.trackid
+            ORDER BY 3 DESC),
+	 t2 as (select name,index1
+            from t1
+            where index1 = (select max(index1) from t1))
+SELECT a.name,SUM(il.unitprice*il.quantity) spend, c.customerid, c.firstname, c.lastname
+FROM Artist a
+join Album al
+on a.artistid= al.artistid
+join Track t
+on al.albumid= t.albumid
+join InvoiceLine il
+on t.trackid= il.trackid
+join Invoice i
+on il.invoiceid= i.InvoiceId
+join Customer c
+on i.customerid= c.customerid
+where a.name = (select name from t2)
+group by 1,3,4,5
+order by 2 desc, 3
+
+/*Q3/
+--We want to find out the most popular music Genre for each country. We determine the most popular g
+--enre as the genre with the highest amount of purchases. Write a query that returns
+--each country along with the top Genre. For countries where the maximum number of purchases
+--is shared return all Genres.
+WITH T1 AS (SELECT COUNT(total) purchases, billingcountry country, g.name, g.genreid
+            FROM Invoice i, InvoiceLine il, Track t
+            join Genre g
+            on t.genreid = g.GenreId
+            WHERE i.invoiceid=il.invoiceid and il.trackid = t.trackid
+            GROUP BY 2,3,4
+           order by 1 desc)
+SELECT purchases, country,name, genreid
+FROM (SELECT purchases, country,name, genreid,
+      DENSE_RANK()OVER(PARTITION BY country ORDER BY purchases DESC) INDEX1
+      FROM T1) T2
+WHERE INDEX1 =1
+
+/*Q4/
+--Write a query that determines the customer that has spent the most on music for each country.
+--Write a query that returns the country along with the top customer and how much they spent.
+--For countries where the top amount spent is shared, provide all customers who spent this amount.
+WITH T1 AS(SELECT billingcountry, c.customerid, firstname,lastname, SUM(total) spend
+          FROM Customer C
+          join Invoice I
+          on C.CustomerId= I.customerid
+          GROUP BY 1,2)
+SELECT billingcountry, spend, firstname,lastname,customerid
+FROM (SELECT billingcountry, customerid, firstname,lastname, spend,
+              DENSE_RANK()OVER(PARTITION BY billingcountry ORDER BY SPEND DESC) INDEX1
+      FROM T1) T2
+WHERE INDEX1 =1
+ORDER BY 1
