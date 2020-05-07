@@ -1,5 +1,4 @@
-/* Q1/
---Who is writing the rock music?
+-- Who is writing the rock music?
 select a.artistid, a.name, COUNT(*) songs
 FROM Artist a, Album al, Track t
 join Genre g
@@ -9,10 +8,8 @@ GROUP BY 1,2
 ORDER BY 3 DESC
 LIMIT 10;
 
-/*Q2/
---First, find which artist has earned the most according to the InvoiceLines?
---Now use this artist to find which customer spent the most on this artist.
 
+--how much did customer spent the most on the most earned artist?
 -- pickout all the Artist if they have the same amount of sales
 WITH T1 AS (SELECT a.name, il.trackid,  SUM(il.unitprice*il.quantity)OVER(PARTITION BY A.ArtistId) index1
             from Artist a
@@ -42,11 +39,8 @@ where a.name = (select name from t2)
 group by 1,3,4,5
 order by 2 desc, 3
 
-/*Q3/
---We want to find out the most popular music Genre for each country. We determine the most popular g
---enre as the genre with the highest amount of purchases. Write a query that returns
---each country along with the top Genre. For countries where the maximum number of purchases
---is shared return all Genres.
+
+--  the most popular music Genre for each country?
 WITH T1 AS (SELECT COUNT(total) purchases, billingcountry country, g.name, g.genreid
             FROM Invoice i, InvoiceLine il, Track t
             join Genre g
@@ -60,10 +54,9 @@ FROM (SELECT purchases, country,name, genreid,
       FROM T1) T2
 WHERE INDEX1 =1
 
-/*Q4/
---Write a query that determines the customer that has spent the most on music for each country.
---Write a query that returns the country along with the top customer and how much they spent.
---For countries where the top amount spent is shared, provide all customers who spent this amount.
+
+
+-- customer that has spent the most on music for each country ?
 WITH T1 AS(SELECT billingcountry, c.customerid, firstname,lastname, SUM(total) spend
           FROM Customer C
           join Invoice I
